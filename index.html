@@ -7,99 +7,106 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <div class="trigger-area left"></div>
     <div class="trigger-area right"></div>
 
     <aside class="sidebar left" id="sb-left">
-
         <div class="sidebar-header" style="display: flex; gap: 5px; align-items: center;">
-            <h3 style="flex: 1; margin: 0;">Schedule</h3>
-
-            <input type="date" id="schedule-date-picker" title="Go to Date">
-
-            <button id="btn-schedule-today" class="top-bar-btn" title="Go to Today" style="font-size: 1.2rem; padding: 0 5px;">↺</button>
-
-            <button id="btn-week-toggle" class="top-bar-btn" title="Toggle List View">≣</button>
+            <button class="sb-tab-btn active" data-tab="notas" onclick="sidebarManager.switchTab('notas')">Notas</button>
+            <button class="sb-tab-btn" data-tab="listas" onclick="sidebarManager.switchTab('listas')">Listas</button>
         </div>
-        <div class="sidebar-scroll-content">
-            <textarea id="notes-area-left" placeholder="Notes..."></textarea>
-
-            <section id="schedule-panel" class="card-side">
-                <div id="schedule-list">
-                    <p class="loading-text">Syncing...</p>
+        <div class="sidebar-content-area">
+            <div id="sb-tab-notas" class="sb-tab-pane">
+                <div class="notes-top-bar">
+                    <button id="btn-new-note" class="action-btn-large bg-accent text-on-accent" style="width: 100%; margin-bottom: 10px; cursor: pointer;">+ Nova nota</button>
                 </div>
-            </section>
-        </div>
-
-        <div class="sidebar-footer-menu">
-            <button class="nav-btn active" onclick="viewManager.switch('main')">MAIN</button>
-            <button class="nav-btn" onclick="viewManager.switch('pomodoro')">POMODORO</button>
-            <button class="nav-btn" onclick="viewManager.switch('timer')">TIMER</button>
+                <div id="notes-container" class="notes-container"></div>
+            </div>
+            <div id="sb-tab-listas" class="sb-tab-pane hidden">
+                <div class="lists-top-bar">
+                    <button onclick="window.listsManager.addRootFolder()" class="action-btn-large bg-accent text-on-accent" style="flex:1; cursor: pointer;">+ Pasta</button>
+                    <button onclick="window.listsManager.addRootList()" class="action-btn-large bg-dim text-muted border-dim" style="flex:1; cursor: pointer;">+ Lista</button>
+                </div>
+                <div id="lists-container" class="lists-container"></div>
+            </div>
         </div>
     </aside>
 
     <aside class="sidebar right" id="sb-right">
-
-        <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <h3>Methodology</h3>
-            <div class="sr-controls">
-                <button id="btn-settings" class="top-bar-btn" title="Settings">⚙</button>
-                <button id="btn-theme-toggle" class="top-bar-btn" title="Toggle Theme">☀</button>
-            </div>
+        <div class="sidebar-header">
+            <h3>Quick Notes (Right)</h3>
         </div>
-
         <div class="sidebar-scroll-content right-content-padding">
-            <div id="methods-list">
-                <p class="loading-text" style="color: var(--text-muted);">Waiting for activity...</p>
-            </div>
-
-            <textarea id="notes-area-right" placeholder="Notes..." style="text-align: right;"></textarea>
-
+            <textarea id="notes-area-right" placeholder="Type here..." style="text-align: right;"></textarea>
         </div>
     </aside>
 
-
     <header id="top-dock">
-        <button class="mob-dock-btn" onclick="toggleSidebar('left')">☰</button>
-        <span id="header-info">Loading...</span>
+        <button class="mob-dock-btn" onclick="sidebarManager.toggle()">☰</button>
+        
+        <div id="dock-clock">
+            <span id="clock-date"></span>
+            <span id="clock-time"></span>
+        </div>
+        
+        <nav class="dock-nav">
+            <button class="nav-btn" data-view="pomodoro" onclick="viewManager.switch('pomodoro')">Pomodoro</button>
+            <button class="nav-btn" data-view="timer" onclick="viewManager.switch('timer')">Timer</button>
+        </nav>
+
+        <div class="dock-actions">
+            <button id="btn-theme-toggle" class="top-bar-btn" title="Tema">🎨</button>
+            <button id="btn-settings" class="top-bar-btn" title="Configurações">⚙️</button>
+        </div>
+
         <button class="mob-dock-btn" onclick="toggleSidebar('right')">☰</button>
     </header>
 
     <div class="container">
         <div class="spacer"></div>
 
-        <div id="view-main" class="view-section">
+        <div id="view-pomodoro" class="view-section hidden">
             <section id="pomodoro-main" class="card">
-
-                <button id="btn-pomo-edit" class="edit-pomo-btn" title="Toggle Note">ᝰ</button>
-
+                <button id="btn-pomo-edit" class="edit-pomo-btn" title="Toggle Note">✎</button>
                 <div class="pomo-inner-container">
-
                     <div class="timer-wrapper">
                         <svg class="timer-svg">
                             <rect x="5" y="5" width="200" height="200" rx="40" ry="40" class="bg-border"></rect>
                             <rect x="5" y="5" width="200" height="200" rx="40" ry="40" class="progress-border" id="progresso-main"></rect>
                         </svg>
                         <div class="timer-content">
-                            <h1 id="time-main">00:00</h1>
+                            <h1 id="time-main">25:00</h1>
                             <div class="timer-controls">
-                                <button id="btn-main" class="hidden">START</button>
-                                <button id="btn-reset-main" class="btn-reset hidden">↺</button>
+                                <button id="btn-main">START</button>
+                                <button id="btn-reset-main" class="btn-reset">↻</button>
                             </div>
                             <div id="status-main">FOCUS</div>
                         </div>
                     </div>
-
                     <div class="pomo-note-wrapper">
                         <textarea id="pomo-side-note" placeholder="Task details..."></textarea>
                     </div>
+                </div>
 
+                <div class="pomodoro-presets-row" style="display: flex; gap: 10px; margin-top: 15px; justify-content: center;">
+                    <button id="btn-preset-25-5" class="action-btn" onclick="window.pomodoro.applyPreset(25, 5)">25:5</button>
+                    <button id="btn-preset-50-10" class="action-btn" onclick="window.pomodoro.applyPreset(50, 10)">50:10</button>
+                </div>
+
+                <div class="manual-inputs-bottom">
+                    <div class="input-group">
+                        <label>Focus (min)</label>
+                        <input type="number" id="manual-focus-time" value="25" min="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Rest (min)</label>
+                        <input type="number" id="manual-rest-time" value="5" min="1">
+                    </div>
                 </div>
 
                 <div class="linear-wrapper">
                     <div class="linear-info">
-                        <span id="mini-time">00:00</span>
+                        <span id="mini-time">25:00</span>
                         <span id="mini-status">FOCUS</span>
                     </div>
                     <div class="linear-track">
@@ -107,68 +114,18 @@
                     </div>
                 </div>
             </section>
-
-            <section id="topics-panel" class="card hidden">
-                <div class="card-header-row">
-                    <h4 class="card-title">STUDY TOPICS</h4>
-                    <button id="pin-btn" title="Toggle View Mode">📌</button>
-                </div>
-                <div class="table-container">
-                    <table id="topics-table">
-                        <thead>
-                            <tr>
-                                <th width="40%">Syllabus</th>
-                                <th width="30%">Source</th>
-                                <th width="30%" class="right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="topics-body"></tbody>
-                    </table>
-                </div>
-            </section>
         </div>
 
-        <div id="view-pomodoro" class="view-section hidden">
-            <section class="card">
-                <h4 class="card-title">MANUAL MODE</h4>
-                <div class="timer-wrapper">
-                    <svg class="timer-svg">
-                        <rect x="5" y="5" width="200" height="200" rx="40" ry="40" class="bg-border"></rect>
-                        <rect x="5" y="5" width="200" height="200" rx="40" ry="40" class="progress-border" id="progresso-manual"></rect>
-                    </svg>
-                    <div class="timer-content">
-                        <h1 id="time-manual">25:00</h1>
-                        <div class="timer-controls">
-                            <button id="btn-manual">START</button>
-                            <button id="btn-reset-manual" class="btn-reset">↺</button>
-                        </div>
-                        <div id="status-manual">READY</div>
-                    </div>
-                </div>
-                <div class="manual-inputs-bottom">
-                    <div class="input-group">
-                        <label>Focus (min)</label>
-                        <input type="number" id="manual-focus-time" value="25">
-                    </div>
-                    <div class="input-group">
-                        <label>Rest (min)</label>
-                        <input type="number" id="manual-rest-time" value="5">
-                    </div>
-                </div>
-            </section>
-        </div>
-
-<div id="view-timer" class="view-section hidden">
-            <section class="card full-height-card" style="position: relative; padding-bottom: 50px;">
+        <div id="view-timer" class="view-section hidden">
+            <section class="card full-height-card">
                 <div class="card-header-row">
                     <h4 class="card-title">TASK QUEUE</h4>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <button id="global-queue-btn" class="action-btn-large" style="background: var(--text-muted);">⏯ PAUSED</button>
-                        <button id="global-reset-btn" class="btn-reset">↺</button>
-                        <button id="global-clear-btn" class="btn-reset" title="Clear List" style="color: var(--accent-red);">🗑</button>
+                    <div class="queue-controls">
+                        <button id="global-queue-btn" class="action-btn-large bg-dim text-muted border-dim">⏸ PAUSED</button>
+                        <button id="global-reset-btn" class="btn-reset">↻</button>
+                        <button id="global-clear-btn" class="btn-reset text-danger" title="Clear List">🗑</button>
                     </div>
                 </div>
-
                 <div class="task-input-row">
                     <input type="text" id="task-name" placeholder="Task Name" class="input-main">
                     <div class="time-inputs">
@@ -177,14 +134,12 @@
                         <input type="number" id="task-s" placeholder="ss" min="0">
                     </div>
                     <input type="color" id="task-color" value="#458588" title="Color">
-                    <button id="btn-add-task" class="action-btn-large">+</button>
+                    <button id="btn-add-task" class="action-btn-large bg-accent text-on-accent">+</button>
+                    <button id="btn-add-divider" class="action-btn-large bg-dim text-muted border-dim" title="Adicionar divisória">—</button>
                 </div>
-
                 <div id="timer-queue-list"></div>
-
                 <div id="tab-bar-footer">
-                    <div id="tabs-scroll-area">
-                        </div>
+                    <div id="tabs-scroll-area"></div>
                     <button id="btn-add-tab" title="New List">+</button>
                 </div>
             </section>
@@ -193,80 +148,35 @@
         <footer><p>chewwallwa 2026</p></footer>
     </div>
 
-    <div id="floating-widget" class="hidden" title="Click to go to Main">
-        <div class="float-content">
-            <span id="float-activity" class="heavy">...</span>
-            <div class="float-timer-row">
-                <span id="float-time">00:00</span>
-                <span id="float-status">FOCUS</span>
-            </div>
-            <div class="float-bar-bg">
-                <div id="float-bar-fill"></div>
-            </div>
-        </div>
-    </div>
-
-<div id="settings-overlay" class="hidden">
-        <div class="settings-modal" id="settings-modal">
+    <div id="settings-overlay" class="hidden">
+        <div class="settings-modal">
             <div class="settings-header">
-                <h2>Dashboard Settings</h2>
+                <h2>⚙ Configurações</h2>
                 <button class="close-btn" id="btn-close-settings">&times;</button>
             </div>
-
             <div class="settings-body">
-                <h3>📊 Data Sources (CSV)</h3>
-                <label>Main Schedule URL</label>
-                <input type="text" id="cfg-sheet-url" placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv">
-
-                <label>Topics/Syllabus URL</label>
-                <input type="text" id="cfg-topics-url">
-
-                <label>Methods Sheet URL</label>
-                <input type="text" id="cfg-methods-url">
-
-                <div class="separator" style="margin: 15px 0; border-top: 1px solid #444;"></div>
-
-                <h3>🤖 Telegram Bot Setup</h3>
-                <p style="font-size: 0.8em; color: #888;">Configure your bot to receive notifications.</p>
-
-                <label>Bot Token (@BotFather)</label>
-                <input type="text" id="cfg-tg-token" placeholder="12345:AAF...">
-
-                <label>Chat ID (@userinfobot)</label>
-                <input type="text" id="cfg-tg-id" placeholder="123456789">
-
-                <div class="separator" style="margin: 15px 0; border-top: 1px solid #444;"></div>
-
-                <h3>☁️ Personal Drive Sync</h3>
-                <p style="font-size: 0.8em; color: #888;">Saves everything to your Google Drive (Auto-save active).</p>
-
-                <label>API URL (Google Script /exec)</label>
-                <input type="text" id="cfg-cloud-url" placeholder="https://script.google.com/.../exec">
-
-                <label>Secret Key (Password)</label>
-                <input type="password" id="cfg-cloud-key" placeholder="Your secret password">
-
-                <div style="display: flex; gap: 10px; margin-top: 10px;">
-                    <button id="btn-cloud-save" class="action-btn" style="background: #2e7d32; color: white;">⬆️ Force Upload</button>
-                    <button id="btn-cloud-load" class="action-btn" style="background: #1565c0; color: white;">⬇️ Force Download</button>
-                </div>
-                <div id="cloud-status" style="margin-top: 5px; font-size: 0.8em; color: #aaa; font-style: italic;"></div>
-
-                <div class="separator" style="margin: 15px 0; border-top: 1px solid #444;"></div>
-
-                <h3>📦 Manual Backup (File)</h3>
-                <div style="display: flex; gap: 10px;">
-                    <button id="btn-export" class="action-btn">📤 Export Code</button>
-                    <button id="btn-import" class="action-btn">📥 Import Code</button>
+                <h3>💾 Dados</h3>
+                <div class="cloud-buttons-row" style="flex-direction: column; gap: 8px;">
+                    <button id="btn-download-backup" class="action-btn" style="width: 100%; padding: 10px; font-weight: bold;">Baixar backup</button>
+                    <button id="btn-import-backup" class="action-btn" style="width: 100%; padding: 10px; font-weight: bold;">Importar backup</button>
+                    <input type="file" id="input-file-backup" accept=".json" class="hidden">
+                    <button id="btn-wipe-data" class="action-btn text-danger border-dim" style="width: 100%; padding: 10px; font-weight: bold;">Apagar todos os dados</button>
                 </div>
             </div>
-
             <div class="settings-actions">
                 <button id="btn-save-settings" class="save-btn">Save & Reload</button>
             </div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/views.js"></script>
+    <script src="js/pomodoro.js"></script>
+    <script src="js/timer.js"></script>
+    <script src="js/notes.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/lists.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/themes.js"></script>
 </body>
 </html>
