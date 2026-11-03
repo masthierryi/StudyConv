@@ -186,7 +186,7 @@ div[id^="status"] { font-size: 0.8rem; color: var(--text-muted); margin-top: 5px
 
 /* Task Queue */
 .action-btn { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; margin-left: 4px; }
-.action-btn:hover { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }\
+.action-btn:hover { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 .action-btn.active {
     background-color: var(--accent) !important;
     color: var(--accent-text) !important;
