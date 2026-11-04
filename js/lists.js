@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.Store.set('listsData', this.state);
         }
 
-        // Renderiza tudo e mantém o foco no input de "Novo item" se estiver focado
+        // Render everything and maintain focus on the "New item" input if it is focused
         renderAndPreserveFocus() {
             let focusedListId = null;
             if (document.activeElement && document.activeElement.dataset.action === 'add-item-input') {
@@ -30,48 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // --- MANIPULAÇÃO DE DADOS (Árvore) ---
-
-        findNode(id, node = this.state) {
-            if (node.pastas) {
-                for (let p of node.pastas) {
-                    if (p.id === id) return { item: p, type: 'pasta' };
-                    const found = this.findNode(id, p);
-                    if (found) return found;
-                }
-            }
-            if (node.listas) {
-                for (let l of node.listas) {
-                    if (l.id === id) return { item: l, type: 'lista' };
-                }
-            }
-            return null;
-        }
-
-        deleteNode(id, node = this.state) {
-            if (node.pastas) {
-                const initLen = node.pastas.length;
-                node.pastas = node.pastas.filter(p => p.id !== id);
-                if (node.pastas.length !== initLen) return true;
-                
-                for (let p of node.pastas) {
-                    if (this.deleteNode(id, p)) return true;
-                }
-            }
-            if (node.listas) {
-                const initLen = node.listas.length;
-                node.listas = node.listas.filter(l => l.id !== id);
-                if (node.listas.length !== initLen) return true;
-            }
-            return false;
-        }
-
-        // --- AÇÕES GLOBAIS ---
+        // --- GLOBAL ACTIONS ---
 
         addRootFolder() {
             this.state.pastas.push({
                 id: Date.now(),
-                nome: 'Nova pasta',
+                nome: 'New folder',
                 aberta: true,
                 pastas: [],
                 listas: []
@@ -83,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addRootList() {
             this.state.listas.push({
                 id: Date.now(),
-                titulo: 'Nova lista',
+                titulo: 'New list',
                 aberta: true,
                 itens: []
             });
@@ -96,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bindEvents() {
             if (!this.container) return;
 
-            // Delegação de cliques para botões e checkboxes
+            // Click delegation for buttons and checkboxes
             this.container.addEventListener('click', (e) => {
                 const el = e.target.closest('[data-action]');
                 if (!el) return;
@@ -104,9 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const action = el.dataset.action;
                 const id = Number(el.dataset.id);
                 
-                // Ações de Pastas e Listas
+                // Folder and List Actions
                 if (action === 'toggle-folder' || action === 'toggle-list') {
-                    const node = this.findNode(id);
+                    const node = window.Tree.findNode(this.state, id);
                     if (node) {
                         node.item.aberta = !node.item.aberta;
                         this.save();
@@ -114,43 +78,49 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 else if (action === 'add-subfolder') {
-                    const node = this.findNode(id);
+                    const depth = window.Tree.depthOf(this.state, id);
+                    if (depth >= 3) return; // Limit of 3 levels
+
+                    const node = window.Tree.findNode(this.state, id);
                     if (node && node.type === 'pasta') {
                         node.item.pastas = node.item.pastas || [];
-                        node.item.pastas.push({ id: Date.now(), nome: 'Nova pasta', aberta: true, pastas: [], listas: [] });
+                        node.item.pastas.push({ id: Date.now(), nome: 'New folder', aberta: true, pastas: [], listas: [] });
                         node.item.aberta = true;
                         this.save();
                         this.renderAndPreserveFocus();
                     }
                 }
                 else if (action === 'add-sublist') {
-                    const node = this.findNode(id);
+                    const node = window.Tree.findNode(this.state, id);
                     if (node && node.type === 'pasta') {
                         node.item.listas = node.item.listas || [];
-                        node.item.listas.push({ id: Date.now(), titulo: 'Nova lista', aberta: true, itens: [] });
+                        node.item.listas.push({ id: Date.now(), titulo: 'New list', aberta: true, itens: [] });
                         node.item.aberta = true;
                         this.save();
                         this.renderAndPreserveFocus();
                     }
                 }
                 else if (action === 'delete-folder') {
-                    if (confirm("Excluir a pasta e tudo dentro dela?")) {
-                        this.deleteNode(id);
-                        this.save();
-                        this.renderAndPreserveFocus();
+                    const node = window.Tree.findNode(this.state, id);
+                    if (node && node.type === 'pasta') {
+                        if (window.Tree.isFolderEmpty(node.item) || confirm("Delete the folder and everything inside it?")) {
+                            window.Tree.deleteNode(this.state, id);
+                            this.save();
+                            this.renderAndPreserveFocus();
+                        }
                     }
                 }
                 else if (action === 'delete-list') {
-                    this.deleteNode(id);
+                    window.Tree.deleteNode(this.state, id);
                     this.save();
                     this.renderAndPreserveFocus();
                 }
                 
-                // Ações de Itens
+                // Item Actions
                 else if (action === 'toggle-item') {
                     const listId = Number(el.dataset.listId);
                     const itemId = Number(el.dataset.itemId);
-                    const node = this.findNode(listId);
+                    const node = window.Tree.findNode(this.state, listId);
                     if (node && node.type === 'lista') {
                         const item = node.item.itens.find(i => i.id === itemId);
                         if (item) {
@@ -163,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (action === 'delete-item') {
                     const listId = Number(el.dataset.listId);
                     const itemId = Number(el.dataset.itemId);
-                    const node = this.findNode(listId);
+                    const node = window.Tree.findNode(this.state, listId);
                     if (node && node.type === 'lista') {
                         node.item.itens = node.item.itens.filter(i => i.id !== itemId);
                         this.save();
@@ -173,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (action === 'move-up-item' || action === 'move-down-item') {
                     const listId = Number(el.dataset.listId);
                     const itemId = Number(el.dataset.itemId);
-                    const node = this.findNode(listId);
+                    const node = window.Tree.findNode(this.state, listId);
                     if (node && node.type === 'lista') {
                         const arr = node.item.itens;
                         const idx = arr.findIndex(i => i.id === itemId);
@@ -192,14 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Enter no input de novo item
+            // Enter on new item input
             this.container.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' && e.target.dataset.action === 'add-item-input') {
                     const listId = Number(e.target.dataset.listId);
                     const texto = e.target.value.trim();
                     if (!texto) return;
 
-                    const node = this.findNode(listId);
+                    const node = window.Tree.findNode(this.state, listId);
                     if (node && node.type === 'lista') {
                         node.item.itens = node.item.itens || [];
                         node.item.itens.push({ id: Date.now(), texto, feito: false });
@@ -209,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Duplo clique para edição in-line (pastas, listas e itens)
+            // Double click for in-line editing (folders, lists, and items)
             this.container.addEventListener('dblclick', (e) => {
                 const el = e.target.closest('.cute-name, .cute-title, .item-text');
                 if (!el) return;
@@ -223,12 +193,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (isItem) {
                     const listId = Number(el.dataset.listId);
-                    nodeInfo = this.findNode(listId);
+                    nodeInfo = window.Tree.findNode(this.state, listId);
                     if (nodeInfo && nodeInfo.type === 'lista') {
                         itemObj = nodeInfo.item.itens.find(i => i.id === id);
                     }
                 } else {
-                    nodeInfo = this.findNode(id);
+                    nodeInfo = window.Tree.findNode(this.state, id);
                 }
                 
                 if (!nodeInfo) return;
@@ -283,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // --- RENDERIZAÇÃO RECURSIVA ---
+        // --- RECURSIVE RENDERING ---
 
         renderAll() {
             if (!this.container) return;
@@ -291,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let html = '';
             
             if (this.state.pastas) {
-                this.state.pastas.forEach(p => { html += this.createFolderHTML(p); });
+                this.state.pastas.forEach(p => { html += this.createFolderHTML(p, 1); });
             }
             if (this.state.listas) {
                 this.state.listas.forEach(l => { html += this.createListHTML(l); });
@@ -300,30 +270,34 @@ document.addEventListener('DOMContentLoaded', () => {
             this.container.innerHTML = html;
         }
 
-        createFolderHTML(pasta) {
+        createFolderHTML(pasta, depth = 1) {
             const arrow = pasta.aberta ? '▾' : '▸';
             let childrenHTML = '';
 
             if (pasta.aberta) {
                 if (pasta.pastas) {
-                    pasta.pastas.forEach(p => { childrenHTML += this.createFolderHTML(p); });
+                    pasta.pastas.forEach(p => { childrenHTML += this.createFolderHTML(p, depth + 1); });
                 }
                 if (pasta.listas) {
                     pasta.listas.forEach(l => { childrenHTML += this.createListHTML(l); });
                 }
             }
 
+            const btnAddFolder = depth < 3 
+                ? `<button class="action-btn" data-action="add-subfolder" data-id="${pasta.id}" title="+ Subfolder">+📁 </button>` 
+                : '';
+
             return `
                 <div class="cute-folder-card">
                     <div class="cute-folder-header">
                         <div class="cute-folder-title-area">
                             <span class="cute-arrow action-btn" data-action="toggle-folder" data-id="${pasta.id}">${arrow}</span>
-                            <span class="cute-name" data-id="${pasta.id}" title="Duplo clique para renomear">${window.escapeHtml(pasta.nome)}</span>
+                            <span class="cute-name" data-id="${pasta.id}" title="Double click to rename">${window.escapeHtml(pasta.nome)}</span>
                         </div>
                         <div class="cute-actions">
-                            <button class="action-btn" data-action="add-subfolder" data-id="${pasta.id}" title="+ Subpasta">+📁</button>
-                            <button class="action-btn" data-action="add-sublist" data-id="${pasta.id}" title="+ Lista">+📋</button>
-                            <button class="action-btn text-danger" data-action="delete-folder" data-id="${pasta.id}" title="Excluir">×</button>
+                            ${btnAddFolder}
+                            <button class="action-btn" data-action="add-sublist" data-id="${pasta.id}" title="+ List">+📋</button>
+                            <button class="action-btn text-danger" data-action="delete-folder" data-id="${pasta.id}" title="Delete">×</button>
                         </div>
                     </div>
                     ${pasta.aberta && childrenHTML ? `<div class="cute-folder-body">${childrenHTML}</div>` : ''}
@@ -343,12 +317,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="cute-item-row">
                         <label class="cute-checkbox-label ${item.feito ? 'item-done' : ''}">
                             <input type="checkbox" data-action="toggle-item" data-list-id="${lista.id}" data-item-id="${item.id}" ${item.feito ? 'checked' : ''}>
-                            <span class="item-text" data-id="${item.id}" data-list-id="${lista.id}" title="Duplo clique para renomear">${window.escapeHtml(item.texto)}</span>
+                            <span class="item-text" data-id="${item.id}" data-list-id="${lista.id}" title="Double click to rename">${window.escapeHtml(item.texto)}</span>
                         </label>
                         <div class="item-actions">
-                            <button class="action-btn" data-action="move-up-item" data-list-id="${lista.id}" data-item-id="${item.id}" title="Subir">↑</button>
-                            <button class="action-btn" data-action="move-down-item" data-list-id="${lista.id}" data-item-id="${item.id}" title="Descer">↓</button>
-                            <button class="action-btn text-danger" data-action="delete-item" data-list-id="${lista.id}" data-item-id="${item.id}" title="Excluir">×</button>
+                            <button class="action-btn" data-action="move-up-item" data-list-id="${lista.id}" data-item-id="${item.id}" title="Move up">↑</button>
+                            <button class="action-btn" data-action="move-down-item" data-list-id="${lista.id}" data-item-id="${item.id}" title="Move down">↓</button>
+                            <button class="action-btn text-danger" data-action="delete-item" data-list-id="${lista.id}" data-item-id="${item.id}" title="Delete">×</button>
                         </div>
                     </div>
                 `;
@@ -359,11 +333,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="cute-list-header">
                         <div class="cute-list-title-area">
                             <span class="cute-arrow action-btn" data-action="toggle-list" data-id="${lista.id}">${arrow}</span>
-                            <span class="cute-title" data-id="${lista.id}" title="Duplo clique para renomear">${window.escapeHtml(lista.titulo)}</span>
+                            <span class="cute-title" data-id="${lista.id}" title="Double click to rename">${window.escapeHtml(lista.titulo)}</span>
                         </div>
                         <div class="cute-list-meta-actions">
                             <span class="cute-counter">${doneCount}/${totalCount}</span>
-                            <button class="action-btn text-danger" data-action="delete-list" data-id="${lista.id}" title="Excluir">×</button>
+                            <button class="action-btn text-danger" data-action="delete-list" data-id="${lista.id}" title="Delete">×</button>
                         </div>
                     </div>
                     ${lista.aberta ? `
@@ -372,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${itensHTML}
                         </div>
                         <div class="new-item-row">
-                            <input type="text" placeholder="Novo item... (Enter para salvar)" data-action="add-item-input" data-list-id="${lista.id}">
+                            <input type="text" placeholder="New item... (Enter to save)" data-action="add-item-input" data-list-id="${lista.id}">
                         </div>
                     </div>
                     ` : ''}

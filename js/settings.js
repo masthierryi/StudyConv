@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.btnSettings) this.btnSettings.addEventListener('click', () => this.open());
             if (this.btnClose) this.btnClose.addEventListener('click', () => this.close());
             
-            // Fecha ao clicar no fundo escuro fora do modal
+            // Closes when clicking on the dark background outside the modal
             if (this.overlay) {
                 this.overlay.addEventListener('click', (e) => {
                     if (e.target === this.overlay) this.close();
@@ -82,12 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const json = JSON.parse(ev.target.result);
                     
                     if (!json.versao || typeof json.dados !== 'object' || json.dados === null) {
-                        alert("Arquivo inválido.");
+                        alert("Invalid file.");
                         this.inputFile.value = '';
                         return;
                     }
 
-                    if (confirm("Isso vai substituir todos os seus dados. Continuar?")) {
+                    if (confirm("This will overwrite all your data. Continue?")) {
                         localStorage.clear();
                         for (const key in json.dados) {
                             localStorage.setItem(key, json.dados[key]);
@@ -95,16 +95,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         location.reload();
                     }
                 } catch (err) {
-                    alert("Arquivo inválido.");
+                    alert("Invalid file.");
                 }
-                this.inputFile.value = ''; // Limpa o input file
+                this.inputFile.value = ''; // Clears the file input
             };
             reader.readAsText(file);
         }
 
         wipeData() {
-            if (confirm("Tem certeza que deseja apagar TODOS os seus dados?")) {
-                if (confirm("Aviso final: Essa ação é irreversível e apagará listas, notas e timers. Deseja mesmo continuar?")) {
+            if (confirm("Are you sure you want to delete ALL your data?")) {
+                if (confirm("Final warning: This action is irreversible and will delete lists, notes, and timers. Do you really want to continue?")) {
                     localStorage.clear();
                     location.reload();
                 }

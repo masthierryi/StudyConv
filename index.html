@@ -12,24 +12,26 @@
 
     <aside class="sidebar left" id="sb-left">
         <div class="sidebar-header" style="display: flex; gap: 5px; align-items: center;">
-            <button class="sb-tab-btn active" data-tab="notas" onclick="sidebarManager.switchTab('notas')">Notas</button>
-            <button class="sb-tab-btn" data-tab="listas" onclick="sidebarManager.switchTab('listas')">Listas</button>
+            <button class="sb-tab-btn active" data-tab="notas" onclick="sidebarManager.switchTab('notas')">Notes</button>
+            <button class="sb-tab-btn" data-tab="listas" onclick="sidebarManager.switchTab('listas')">Lists</button>
         </div>
         <div class="sidebar-content-area">
             <div id="sb-tab-notas" class="sb-tab-pane">
                 <div class="notes-top-bar">
-                    <button id="btn-new-note" class="action-btn-large bg-accent text-on-accent" style="width: 100%; margin-bottom: 10px; cursor: pointer;">+ Nova nota</button>
+                    <button id="btn-new-note" class="action-btn-large bg-accent text-on-accent" style="flex: 1; cursor: pointer;">+ 📁 Note</button>
+                    <button onclick="window.notesManager.addRootFolder()" class="action-btn-large bg-dim text-muted border-dim" style="flex: 1; cursor: pointer;">+ 📁 Folder</button>
                 </div>
                 <div id="notes-container" class="notes-container"></div>
             </div>
             <div id="sb-tab-listas" class="sb-tab-pane hidden">
                 <div class="lists-top-bar">
-                    <button onclick="window.listsManager.addRootFolder()" class="action-btn-large bg-accent text-on-accent" style="flex:1; cursor: pointer;">+ Pasta</button>
-                    <button onclick="window.listsManager.addRootList()" class="action-btn-large bg-dim text-muted border-dim" style="flex:1; cursor: pointer;">+ Lista</button>
+                    <button onclick="window.listsManager.addRootFolder()" class="action-btn-large bg-accent text-on-accent" style="flex:1; cursor: pointer;">+ 📁 Folder</button>
+                    <button onclick="window.listsManager.addRootList()" class="action-btn-large bg-dim text-muted border-dim" style="flex:1; cursor: pointer;">+ 📋 List</button>
                 </div>
                 <div id="lists-container" class="lists-container"></div>
             </div>
         </div>
+        <button class="sidebar-handle" aria-label="Open or close" onclick="toggleSidebar('left')"></button>
     </aside>
 
     <aside class="sidebar right" id="sb-right">
@@ -39,6 +41,7 @@
         <div class="sidebar-scroll-content right-content-padding">
             <textarea id="notes-area-right" placeholder="Type here..." style="text-align: right;"></textarea>
         </div>
+        <button class="sidebar-handle" aria-label="Open or close" onclick="toggleSidebar('right')"></button>
     </aside>
 
     <header id="top-dock">
@@ -55,8 +58,8 @@
         </nav>
 
         <div class="dock-actions">
-            <button id="btn-theme-toggle" class="top-bar-btn" title="Tema">🎨</button>
-            <button id="btn-settings" class="top-bar-btn" title="Configurações">⚙️</button>
+            <button id="btn-theme-toggle" class="top-bar-btn" title="Theme">🎨</button>
+            <button id="btn-settings" class="top-bar-btn" title="Settings">⚙️</button>
         </div>
 
         <button class="mob-dock-btn" onclick="toggleSidebar('right')">☰</button>
@@ -77,7 +80,7 @@
                         <div class="timer-content">
                             <h1 id="time-main">25:00</h1>
                             <div class="timer-controls">
-                                <button id="btn-main">START</button>
+                                <button id="btn-main" class="btn-main bg-accent text-on-accent">START</button>
                                 <button id="btn-reset-main" class="btn-reset">↻</button>
                             </div>
                             <div id="status-main">FOCUS</div>
@@ -121,9 +124,9 @@
                 <div class="card-header-row">
                     <h4 class="card-title">TASK QUEUE</h4>
                     <div class="queue-controls">
-                        <button id="global-queue-btn" class="action-btn-large bg-dim text-muted border-dim">⏸ PAUSED</button>
+                        <button id="global-queue-btn" class="action-btn-large bg-dim text-muted border-dim">▶ PAUSED</button>
                         <button id="global-reset-btn" class="btn-reset">↻</button>
-                        <button id="global-clear-btn" class="btn-reset text-danger" title="Clear List">🗑</button>
+                        <button id="global-clear-btn" class="btn-reset text-danger" title="Clear List">🗑️</button>
                     </div>
                 </div>
                 <div class="task-input-row">
@@ -135,7 +138,7 @@
                     </div>
                     <input type="color" id="task-color" value="#458588" title="Color">
                     <button id="btn-add-task" class="action-btn-large bg-accent text-on-accent">+</button>
-                    <button id="btn-add-divider" class="action-btn-large bg-dim text-muted border-dim" title="Adicionar divisória">—</button>
+                    <button id="btn-add-divider" class="action-btn-large bg-dim text-muted border-dim" title="Add divider">—</button>
                 </div>
                 <div id="timer-queue-list"></div>
                 <div id="tab-bar-footer">
@@ -151,20 +154,17 @@
     <div id="settings-overlay" class="hidden">
         <div class="settings-modal">
             <div class="settings-header">
-                <h2>⚙ Configurações</h2>
+                <h2>⚙️ Settings</h2>
                 <button class="close-btn" id="btn-close-settings">&times;</button>
             </div>
             <div class="settings-body">
-                <h3>💾 Dados</h3>
+                <h3>💾 Data</h3>
                 <div class="cloud-buttons-row" style="flex-direction: column; gap: 8px;">
-                    <button id="btn-download-backup" class="action-btn" style="width: 100%; padding: 10px; font-weight: bold;">Baixar backup</button>
-                    <button id="btn-import-backup" class="action-btn" style="width: 100%; padding: 10px; font-weight: bold;">Importar backup</button>
+                    <button id="btn-download-backup" class="action-btn" style="width: 100%; padding: 10px; font-weight: bold;">Download backup</button>
+                    <button id="btn-import-backup" class="action-btn" style="width: 100%; padding: 10px; font-weight: bold;">Import backup</button>
                     <input type="file" id="input-file-backup" accept=".json" class="hidden">
-                    <button id="btn-wipe-data" class="action-btn text-danger border-dim" style="width: 100%; padding: 10px; font-weight: bold;">Apagar todos os dados</button>
+                    <button id="btn-wipe-data" class="action-btn text-danger border-dim" style="width: 100%; padding: 10px; font-weight: bold;">Wipe all data</button>
                 </div>
-            </div>
-            <div class="settings-actions">
-                <button id="btn-save-settings" class="save-btn">Save & Reload</button>
             </div>
         </div>
     </div>

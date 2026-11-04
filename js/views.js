@@ -23,10 +23,10 @@ document.addEventListener('DOMContentLoaded', () => {
         switch(name) {
             if (!this.pages[name]) return;
 
-            // Salva no localStorage usando a classe Store criada anteriormente
+            // Saves to localStorage using the Store class created previously
             window.Store.set('currentView', name);
 
-            // Controla a visibilidade das páginas
+            // Controls page visibility
             for (const [key, id] of Object.entries(this.pages)) {
                 const el = document.getElementById(id);
                 if (el) {
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Atualiza o estado dos botões da barra de navegação
+            // Updates navigation bar button states
             if (this.navBtns) {
                 this.navBtns.forEach(btn => {
                     if (btn.getAttribute('data-view') === name) {
@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Fecha qualquer barra lateral aberta
+            // Closes any open sidebar
             if (this.sidebars) {
                 this.sidebars.forEach(sidebar => {
                     sidebar.classList.remove('open');
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         constructor() {
             this.dateEl = document.getElementById('clock-date');
             this.timeEl = document.getElementById('clock-time');
-            this.dias = ['DOM.', 'SEG.', 'TER.', 'QUA.', 'QUI.', 'SEX.', 'SÁB.'];
+            this.dias = ['SUN.', 'MON.', 'TUE.', 'WED.', 'THU.', 'FRI.', 'SAT.'];
 
             this.updateClock = this.updateClock.bind(this);
             this.updateClock();
@@ -86,13 +86,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.timeEl.textContent = textoHora;
             }
 
-            // Calcula os milissegundos restantes até o próximo segundo exato
+            // Calculates the remaining milliseconds until the next exact second
             const delay = 1000 - (Date.now() % 1000);
             setTimeout(this.updateClock, delay);
         }
     }
 
-    // Instancia e expõe no window para acesso pelo HTML
+    // Instantiates and exposes on window for access by HTML
     window.viewManager = new ViewManager();
     window.clockWidget = new ClockWidget();
 

@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 resetBtn: document.getElementById('global-reset-btn'),
                 clearBtn: document.getElementById('global-clear-btn'),
                 addBtn: document.getElementById('btn-add-task'),
-                addDividerBtn: document.getElementById('btn-add-divider'), // Novo botão
+                addDividerBtn: document.getElementById('btn-add-divider'), // New button
                 addTabBtn: document.getElementById('btn-add-tab'),
                 queueList: document.getElementById('timer-queue-list'),
                 tabsScrollArea: document.getElementById('tabs-scroll-area')
@@ -51,6 +51,49 @@ document.addEventListener('DOMContentLoaded', () => {
             if (this.els.addBtn) this.els.addBtn.addEventListener('click', () => this.addTask());
             if (this.els.addTabBtn) this.els.addTabBtn.addEventListener('click', () => this.addTab());
             if (this.els.addDividerBtn) this.els.addDividerBtn.addEventListener('click', () => this.addDivider());
+
+            if (this.els.tabsScrollArea) {
+                this.els.tabsScrollArea.addEventListener('dblclick', (e) => {
+                    const tabEl = e.target.closest('.timer-tab');
+                    if (!tabEl || tabEl.classList.contains('editing')) return;
+
+                    const tabId = tabEl.dataset.id;
+                    const tab = this.state.tabs.find(t => t.id === tabId);
+                    if (!tab) return;
+
+                    tabEl.classList.add('editing');
+                    const nameDiv = tabEl.querySelector('.tab-name-input');
+                    const currentName = tab.name;
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'tab-name-input';
+                    input.value = currentName;
+
+                    nameDiv.replaceWith(input);
+                    input.focus();
+                    input.select();
+
+                    const finishEdit = (save) => {
+                        if (!tabEl.classList.contains('editing')) return;
+                        tabEl.classList.remove('editing');
+                        if (save) {
+                            tab.name = input.value.trim() || currentName;
+                            this.save();
+                        }
+                        this.renderTabs();
+                    };
+
+                    input.addEventListener('blur', () => finishEdit(true));
+                    input.addEventListener('keydown', (ev) => {
+                        ev.stopPropagation(); 
+                        if (ev.key === 'Enter') finishEdit(true);
+                        if (ev.key === 'Escape') finishEdit(false);
+                    });
+                    input.addEventListener('mousedown', (ev) => ev.stopPropagation());
+                    input.addEventListener('click', (ev) => ev.stopPropagation());
+                });
+            }
         }
 
         setupScroll() {
@@ -135,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         toggleQueue() {
             const tab = this.getActiveTab();
-            // Só inicia se houver tasks válidas (não apenas divisórias) com tempo restante
+            // Only starts if there are valid tasks (not just dividers) with remaining time
             if (!tab || !tab.tasks.some(t => !t.divider && t.remainingSecs > 0)) return;
             
             this.isRunning = !this.isRunning;
@@ -148,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (this.isRunning) {
                 btn.className = "action-btn-large bg-success text-on-accent";
-                btn.textContent = "⏸ RUNNING";
+                btn.textContent = "⠸ RUNNING";
             } else {
                 btn.className = "action-btn-large bg-dim text-muted border-dim";
                 btn.textContent = "▶ PAUSED";
@@ -167,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         clearTasks() {
-            if (confirm("Apagar todas as tasks desta lista?")) {
+            if (confirm("Delete all tasks from this list?")) {
                 const tab = this.getActiveTab();
                 if (tab) {
                     tab.tasks = [];
@@ -186,14 +229,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!this.isRunning) return;
 
                 const tab = this.getActiveTab();
-                // Pausa se não houver fila ou só existirem divisórias
+                // Pauses if there is no queue or only dividers exist
                 if (!tab || !tab.tasks.some(t => !t.divider)) {
                     this.isRunning = false;
                     this.updateGlobalBtn();
                     return;
                 }
 
-                // Acha a primeira task real (não-divisória) que tenha tempo restante
+                // Finds the first real task (non-divider) that has remaining time
                 const task = tab.tasks.find(t => t.remainingSecs > 0 && !t.divider);
                 if (!task) {
                     this.isRunning = false;
@@ -228,11 +271,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         addTab() {
             const id = 'tab-' + Date.now();
-            this.state.tabs.push({ id, name: 'Nova Lista', tasks: [] });
+            this.state.tabs.push({ id, name: 'New List', tasks: [] });
             this.switchTab(id);
         }
 
         switchTab(id) {
+            if (this.state.activeId === id) return;
             this.state.activeId = id;
             this.isRunning = false;
             this.save();
@@ -242,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         deleteTab(id) {
-            if (confirm("Excluir esta lista?")) {
+            if (confirm("Delete this list?")) {
                 this.state.tabs = this.state.tabs.filter(t => t.id !== id);
                 
                 if (this.state.activeId === id) {
@@ -272,6 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isActive = tab.id === this.state.activeId;
                 const div = document.createElement('div');
                 div.className = `timer-tab ${isActive ? 'active' : ''}`;
+                div.dataset.id = tab.id;
                 div.onclick = () => window.taskQueue.switchTab(tab.id);
                 
                 div.innerHTML = `
@@ -347,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const t = tab.tasks.find(x => x.id === id);
             const el = document.getElementById(id);
-            if (!t || !el || t.divider) return; // Não edita divisória
+            if (!t || !el || t.divider) return; // Doesn't edit divider
 
             el.innerHTML = `
                 <div class="task-edit-form">
@@ -356,8 +401,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <input type="number" class="edit-m" min="0" placeholder="min">
                     <input type="number" class="edit-s" min="0" placeholder="ss">
                     <input type="color" class="edit-color">
-                    <button class="edit-save">Salvar</button>
-                    <button class="edit-cancel">Cancelar</button>
+                    <button class="edit-save">Save</button>
+                    <button class="edit-cancel">Cancel</button>
                 </div>
             `;
 
@@ -429,9 +474,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (task.divider) {
                     div.className = 'task-divider';
-                    div.innerHTML = `<span class="drag-handle" title="Arrastar">⋮⋮</span><hr><button class="btn-del-task" onclick="window.taskQueue.deleteTask('${task.id}')">×</button>`;
+                    div.innerHTML = `<span class="drag-handle" title="Drag">⋮⋮</span><hr><button class="btn-del-task" onclick="window.taskQueue.deleteTask('${task.id}')">×</button>`;
                     list.appendChild(div);
-                    return; // Pula o resto da lógica para divisórias
+                    return; // Skips the rest of the logic for dividers
                 }
 
                 const isFinished = task.remainingSecs <= 0;
@@ -445,13 +490,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="task-bar-fill" style="width: ${percent}%; background-color: ${window.escapeHtml(task.color)}"></div>
                     </div>
                     <div class="task-info">
-                        <span class="drag-handle" title="Arrastar">⋮⋮</span>
+                        <span class="drag-handle" title="Drag">⋮⋮</span>
                         <span class="task-name">${window.escapeHtml(task.name)}</span>
                         <div style="display:flex; align-items:center; gap:5px; z-index:10;">
                             <span class="task-timer" style="font-weight:bold; font-size:1.1rem;">${this.formatTime(task.remainingSecs)}</span>
                             <span class="task-total-time">/ ${this.formatTime(task.totalSecs)}</span>
-                            <button class="btn-edit-task action-btn" onclick="window.taskQueue.startEdit('${task.id}')" title="Editar">✎</button>
-                            <button class="btn-del-task text-danger" onclick="window.taskQueue.deleteTask('${task.id}')" title="Excluir">×</button>
+                            <button class="btn-edit-task action-btn" onclick="window.taskQueue.startEdit('${task.id}')" title="Edit">✎</button>
+                            <button class="btn-del-task text-danger" onclick="window.taskQueue.deleteTask('${task.id}')" title="Delete">×</button>
                         </div>
                     </div>
                 `;

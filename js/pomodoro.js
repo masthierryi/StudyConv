@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     class PomodoroController {
         constructor() {
-            // Elementos
+            // Elements
             this.elTime = document.getElementById('time-main');
             this.elStatus = document.getElementById('status-main');
             this.elMiniTime = document.getElementById('mini-time');
@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
             this.btnPreset25 = document.getElementById('btn-preset-25-5');
             this.btnPreset50 = document.getElementById('btn-preset-50-10');
 
-            // Estado
-            this.mode = 'focus'; // 'focus' ou 'rest'
+            // State
+            this.mode = 'focus'; // 'focus' or 'rest'
             this.isRunning = false;
             this.timeLeft = 0;
             this.totalTime = 0;
@@ -38,14 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         init() {
-            // Carrega tempos salvos ou usa os do input
+            // Loads saved times or uses input ones
             const savedTimes = window.Store.get('pomoTimes');
             if (savedTimes && savedTimes.focus && savedTimes.rest) {
                 if (this.inputFocus) this.inputFocus.value = savedTimes.focus;
                 if (this.inputRest) this.inputRest.value = savedTimes.rest;
             }
 
-            // Carrega nota lateral
+            // Loads side note
             const savedNoteOpen = window.Store.get('pomoNoteOpen', false);
             if (savedNoteOpen && this.container) {
                 this.container.classList.add('pomo-editing');
@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.noteArea.value = savedNoteText;
             }
 
+            this.updateBtnClasses();
             this.updateActivePresetButton();
             this.resetTimer();
         }
@@ -99,6 +100,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        updateBtnClasses() {
+            if (!this.btnMain) return;
+            if (this.isRunning) {
+                this.btnMain.className = "btn-main bg-dim text-muted border-dim";
+            } else {
+                this.btnMain.className = "btn-main bg-accent text-on-accent";
+            }
+        }
+
         toggle() {
             if (this.isRunning) {
                 this.pause();
@@ -117,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (this.btnMain) {
                 this.btnMain.textContent = "PAUSE";
+                this.updateBtnClasses();
             }
 
             this.timerInterval = setInterval(() => this.tick(), 1000);
@@ -131,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (this.btnMain) {
                 this.btnMain.textContent = "START";
+                this.updateBtnClasses();
             }
         }
 
@@ -144,6 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
             this.totalTime = minutes * 60;
             this.timeLeft = this.totalTime;
             
+            if (this.elProgMain && this.svgLength) {
+                this.elProgMain.style.transition = 'none';
+                this.elProgMain.style.strokeDashoffset = '0';
+                void this.elProgMain.getBoundingClientRect(); // Forces reflow
+                this.elProgMain.style.transition = '';
+            }
+
             this.render();
         }
 
@@ -164,6 +183,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.totalTime = minutes * 60;
                 this.timeLeft = this.totalTime;
                 this.endTime = Date.now() + (this.timeLeft * 1000);
+
+                if (this.elProgMain && this.svgLength) {
+                    this.elProgMain.style.transition = 'none';
+                    this.elProgMain.style.strokeDashoffset = '0';
+                    void this.elProgMain.getBoundingClientRect(); // Forces reflow
+                    this.elProgMain.style.transition = '';
+                }
             }
 
             this.render();
@@ -187,16 +213,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.elMiniStatus.style.color = colorVar;
             }
 
-            // Progresso (0 a 1)
+            // Progress (0 to 1)
             const progress = this.totalTime > 0 ? (this.totalTime - this.timeLeft) / this.totalTime : 0;
 
             if (this.elProgLinear) {
-                this.elProgLinear.style.width = (progress * 100) + '%';
+                this.elProgLinear.style.width = ((1 - progress) * 100) + '%';
                 this.elProgLinear.style.backgroundColor = colorVar;
             }
 
             if (this.elProgMain && this.svgLength) {
-                const offset = this.svgLength - (progress * this.svgLength);
+                const offset = progress * this.svgLength;
                 this.elProgMain.style.strokeDashoffset = offset;
                 this.elProgMain.style.stroke = colorVar;
             }
