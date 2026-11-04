@@ -1,42 +1,23 @@
-# Focus Dashboard
+# Study Convenience Clocks
 
-Site pessoal de foco e organização, feito com HTML, CSS e JavaScript puro, sem bibliotecas nem servidor. Tudo fica salvo no navegador (localStorage).
+A personal focus and organization site built with plain HTML, CSS and JavaScript. No libraries, no server. Everything is saved in your browser (localStorage).
 
-## O que tem
+## Features
 
-- **Barra superior:** data e hora do aparelho ao vivo, menu Pomodoro / Timer, seletor de paleta e configurações.
-- **Pomodoro:** ciclo foco/descanso com tempos prontos (25:5 e 50:10) ou personalizados, e uma nota ao lado para descrever a tarefa.
-- **Timer:** fila de tasks com nome, tempo e cor. Dá para editar, reordenar arrastando, separar com divisórias e organizar em várias listas (abas).
-- **Barra lateral esquerda:**
-  - **Notas:** vários blocos que expandem e contraem (mostrando só a primeira linha), com negrito, itálico, listas e indentação em Markdown.
-  - **Listas:** tarefas com checkbox organizadas em pastas e subpastas.
-- **Barra lateral direita:** bloco de notas rápido.
-- **Temas:** paletas prontas (Gruvbox, Dracula, Nord, Solarized, Monokai).
-- **Configurações:** baixar backup (.json com tudo), importar backup e apagar todos os dados.
+- **Top bar:** live date and time (for fullscreen), Pomodoro / Timer menu, palette selector and settings.
+- **Pomodoro:** focus/break cycles with presets (25:5 and 50:10) or custom times, plus a note field.
+- **Timer:** a queue of tasks with a name, time and color. You can edit them, reorder by dragging, add dividers, and organize them into multiple lists (tabs). A timer starts when the previous end.
+- **Left sidebar:**
+  - **Notes:** multiple blocks that expand and collapse, with bold, italic, lists and indentation in Markdown.
+  - **Lists:** checkbox tasks organized in folders and subfolders.
+- **Right sidebar:** a quick notepad.
+- **Themes:** built-in palettes (Gruvbox, Dracula, Nord, Solarized, Monokai and many others).
+- **Settings:** download a backup of all notes, timers and settings (.json with all data), import a backup, and delete all data.
 
-## Como usar
+## Usage
 
-Acesse https://masthierryi.github.io/StudyConv/
+Open https://masthierryi.github.io/StudyConv/
 
-## Estrutura
+## Data
 
-```
-index.html
-style.css
-js/
-  utils.js      funções de apoio (storage, som, escape de HTML)
-  views.js      troca de páginas e relógio
-  pomodoro.js   pomodoro
-  timer.js      fila de tasks, abas, edição, arrastar, divisórias
-  sidebar.js    barras laterais
-  notes.js      blocos de notas
-  lists.js      listas com pastas
-  settings.js   configurações e backup
-  themes.js     paletas de cores
-```
-
-Cada arquivo em `js/` funciona sozinho, então um erro em um deles não derruba os outros.
-
-## Dados
-
-Nada sai do seu navegador. Limpar os dados do site apaga tudo, por isso vale baixar um backup de vez em quando em **Configurações > Dados**.
+Nothing leaves your browser. Clearing the site's data deletes everything, so download a backup from time to time in **Settings > Data**.
